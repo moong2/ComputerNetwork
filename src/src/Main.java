@@ -6,7 +6,7 @@ public class Main extends JFrame{
     Mail_GUI mail=new Mail_GUI();
     public Main(){
         setLayout(card);
-        add("Mail_GUI",mail);
+        add("Mail_gui",mail);
         setBounds(300,100,544,620);
         setVisible(true);
     }

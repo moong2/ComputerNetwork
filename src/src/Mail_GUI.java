@@ -18,7 +18,7 @@ public class Mail_GUI extends JPanel {
     JTextArea content;
     JButton b1, b2;
 
-    String str_send,str_password,str_receive,str_title,str_file,str_content;
+    String str_send,str_password,str_receive,str_title,str_filepath,str_content;
 
     public Mail_GUI()
     {
@@ -148,7 +148,7 @@ public class Mail_GUI extends JPanel {
                 str_password=new String(passwordChars);
                 str_receive= tf_receive.getText();
                 str_title=tf_title.getText();
-                str_file=la_path.getText();
+                str_filepath=la_path.getText();
                 str_content=content.getText();
 
             }
