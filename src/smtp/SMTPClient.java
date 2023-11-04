@@ -139,37 +139,37 @@ public class SMTPClient {
         socket.sendRequest("Subject: "+Subject);
         socket.sendRequest("MIME-Version: 1.0");
         socket.sendRequest("Content-Type: multipart/mixed; boundary=\"" + boundary + "\"");
-        socket.sendCRLF();
+        socket.sendRequest("");
         socket.sendRequest("--" + boundary);
     }
 
     private void sendBodyText() {
         socket.sendRequest("Content-Type: text/plain; charset=utf-8");
         socket.sendRequest("Content-Transfer-Encoding: 7bit");
-        socket.sendCRLF();
+        socket.sendRequest("");
         for(int i=0;i<Contents.length;i++){
             socket.sendRequest(Contents[i]);
         }
-        socket.sendRequest("--" + boundary);
     }
 
     private void sendBodyFile() throws IOException {
         if (!attachmentFilePath.isBlank()) {
+            socket.sendRequest("--" + boundary);
             socket.sendRequest("Content-Type: application/octet-stream; name=\"" + new File(attachmentFilePath).getName() + "\"");
             socket.sendRequest("Content-Disposition: attachment; filename=\"" + new File(attachmentFilePath).getName() + "\"");
             socket.sendRequest("Content-Transfer-Encoding: base64");
-            socket.sendCRLF();
+            socket.sendRequest("");
 
             byte[] attachmentBytes = Files.readAllBytes(new File(attachmentFilePath).toPath());
             String attachmentBase64 = Base64.getEncoder().encodeToString(attachmentBytes);
             socket.sendRequest(attachmentBase64);
-            socket.sendCRLF();
+            socket.sendRequest("");
         }
     }
 
     private void sendMailEnd() throws IOException {
         socket.sendRequest("--" + boundary + "--");
-        socket.sendEnd();
+        socket.sendRequest(".");
         log("SEND .", socket.readResponse());
 
         socket.sendRequest("QUIT");
