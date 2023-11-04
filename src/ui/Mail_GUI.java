@@ -157,13 +157,6 @@ public class Mail_GUI extends JPanel {
                 str_filepath=la_path.getText();
                 str_content=content.getText();
 
-                System.out.println(str_send);
-                System.out.println(str_password);
-                System.out.println(str_receive);
-                System.out.println(str_title);
-                System.out.println(str_filepath);
-                System.out.println(str_content);
-
                 String TempContentArr[]= str_content.split("\n");
 
 
@@ -217,15 +210,19 @@ public class Mail_GUI extends JPanel {
 //                }
 //                통신, 메일보내기 성공했을 경우
 
+                String ToEmailArray[]=str_receive.split(",");
 
-                SMTPClient smtp = new SMTPClient(str_send,str_password,str_receive,str_title,str_filepath,TempContentArr);
+                for(int i=0;i<ToEmailArray.length;i++)
+                {
+                    System.out.println(ToEmailArray[i]);
+                    SMTPClient smtp = new SMTPClient(str_send,str_password,ToEmailArray[i],str_title,str_filepath,TempContentArr);
+                    smtp.SMTPFunc();
+                }
 
-                if(smtp.SMTPFunc()){
+
                     JOptionPane.showMessageDialog(null,"메일이 전송되었습니다.");
-                }
-                else{
-                    JOptionPane.showMessageDialog(null,"메일이 전송이 실패하였습니다.");
-                }
+
+
 
             }
         });
