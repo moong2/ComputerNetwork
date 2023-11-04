@@ -1,14 +1,23 @@
 package smtp;
 
+import static smtp.SMTPUtil.isUserNameExpected;
+import static smtp.SMTPUtil.log;
+import static util.CodeContent.GMAIL;
+import static util.CodeContent.NAVER;
+import static util.CodeContent.boundary;
+
 import java.io.*;
-import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+import socket.GoogleSocket;
 import socket.NaverSocket;
 import socket.SocketHelper;
+
 public class SMTPClient {
+    static SocketHelper socket;
+
     String userName;
     String password ;
     String FromEmail;
@@ -18,223 +27,152 @@ public class SMTPClient {
     String attachmentFilePath ;
     String[] Contents;
 
-
-    public SMTPClient( String _FromEmail, String _password, String _ToEmail, String _Subject,String _attachmentFilePath, String[] _Contents){
+    public SMTPClient( String _FromEmail, String _password, String _ToEmail, String _Subject, String _attachmentFilePath, String[] _Contents){
         FromEmail=_FromEmail;
         password=_password;
         ToEmail=_ToEmail;
         Subject= _Subject;
         Contents=_Contents;
         attachmentFilePath = _attachmentFilePath;
+        this.ofUserName(_FromEmail);
+    }
 
-        if(_FromEmail.contains("naver")){
-            userName= _FromEmail.split("@")[0];
+    private void ofUserName(String _FromEmail) {
+        if (isUserNameExpected(_FromEmail, GMAIL)) {
+            userName = _FromEmail;
+            socket = new GoogleSocket();
         }
-        else if(_FromEmail.contains("gmail")){
-            userName=_FromEmail;
+        else if (isUserNameExpected(_FromEmail, NAVER)) {
+            userName = _FromEmail.split("@")[0];
+            socket = new NaverSocket();
+        }
+        else {
+            throw new IllegalArgumentException("지원하지 않는 이메일 형식입니다. gmail, naver만 이용해주세요.");
         }
     }
 
-    public boolean SMTPFunc() {
-        try  {
-            SocketHelper socket = new NaverSocket();
-            socket.FromSTARTTLS();
-            System.out.println("socket.readResponse() = " + socket.readResponse());
+    public void SMTPFunc() throws IOException {
+        socket.FromSTARTTLS();
+        log("STARTTLS", socket.readResponse());
+//        log("SSL", socket.readResponse());
 
-            socket.sendRequest("EHLO naver.com");
-            List<String> responses = new ArrayList<>();
-            for (int i = 0; i < 7; i ++) {
-                String response = socket.readResponse();
-                System.out.println("response = " + response);
-                responses.add(response);
-            }
+        List<String> responses = getEHLO(socket);
 
-            boolean isTLS = false;
-//            for (String response : responses) {
-//                if (response.contains("250-STARTTLS")) {
-//                    System.out.println("here!");
-//                    socket.sendRequest("STARTTLS");
-//                    response = socket.readResponse();
-//                    System.out.println("response = " + response);
-//                    socket.upgradeToSSL();
-//
-//                    isTLS = true;
-//                    break;
-//                }
-//            }
+        boolean isTLS = checkSTARTTLS(responses);
 
-            if (!isTLS) {
-                socket.close();
-                socket.FromSSL();
+        if (!isTLS) makeSSL();
+
+        getAuth();
+
+        sendMail();
+        sendTo();
+        sendData();
+
+        sendMailHeader();
+        sendBodyText();
+        sendBodyFile();
+        sendMailEnd();
+    }
+
+    private List<String> getEHLO(SocketHelper socket) throws IOException {
+        socket.sendRequest("EHLO gmail.com");
+        List<String> responses = new ArrayList<>();
+        for (int i = 0; i < 7; i ++) {
+            String response = socket.readResponse();
+            responses.add(response);
+        }
+        log("EHLO", responses.toArray(new String[responses.size()]));
+
+        return responses;
+    }
+
+    private boolean checkSTARTTLS(List<String> responses) throws IOException {
+        for (String response : responses) {
+            if (response.contains("250-STARTTLS")) {
+                socket.sendRequest("STARTTLS");
+                log("STARTTLS", socket.readResponse());
                 socket.upgradeToSSL();
-                System.out.println("socket.readResponse() = " + socket.readResponse());
+
+                return true;
             }
+        }
+        return false;
+    }
 
-            System.out.println("AUTH LOGIN");
-            socket.sendRequest("AUTH LOGIN");
-            System.out.println(socket.readResponse());
-            System.out.println("===========");
+    private void makeSSL() throws IOException {
+        socket.close();
+        socket.FromSSL();
+        socket.upgradeToSSL();
+        log("SSL", socket.readResponse());
+    }
 
-            System.out.println("USER NAME");
-            socket.sendRequest(Base64.getEncoder().encodeToString(userName.getBytes()));
-            System.out.println(socket.readResponse());
-            System.out.println("===========");
+    private void getAuth() throws IOException {
+        socket.sendRequest("AUTH LOGIN");
+        log("AUTH LOGIN", socket.readResponse());
 
-            System.out.println("PASSWORD");
-            socket.sendRequest(Base64.getEncoder().encodeToString(password.getBytes()));
-            System.out.println(socket.readResponse());
-            System.out.println("===========");
+        socket.sendRequest(Base64.getEncoder().encodeToString(userName.getBytes()));
+        log("USER NAME", socket.readResponse());
 
-            System.out.println("MAIL FROM:<"+ FromEmail +">");
-            socket.sendRequest("MAIL FROM:<"+ FromEmail +">");
-            System.out.println(socket.readResponse());
-            System.out.println("===========");
+        socket.sendRequest(Base64.getEncoder().encodeToString(password.getBytes()));
+        log("PASSWORD", socket.readResponse());
+    }
 
-            System.out.println("RCPT TO:<"+ ToEmail +">");
-            socket.sendRequest("RCPT TO:<"+ ToEmail +">");
-            System.out.println(socket.readResponse());
-            System.out.println("===========");
+    private void sendMail() throws IOException {
+        socket.sendRequest("MAIL FROM:<"+ FromEmail +">");
+        log("MAIL FROM", socket.readResponse());
+    }
 
-            System.out.println("DATA");
-            socket.sendRequest("DATA");
-            System.out.println(socket.readResponse());
-            System.out.println("===========");
+    private void sendTo() throws IOException {
+        socket.sendRequest("RCPT TO:<"+ ToEmail +">");
+        log("RCPT TO", socket.readResponse());
+    }
 
-            String boundary = "abcdxyz";
+    private void sendData() throws IOException {
+        socket.sendRequest("DATA");
+        log("DATA", socket.readResponse());
+    }
 
-            socket.sendRequest("From: "+userName+" <"+FromEmail+">");
-            socket.sendRequest("To: <"+ToEmail+">");
-            socket.sendRequest("Subject: "+Subject);
-            socket.sendRequest("MIME-Version: 1.0");
-            socket.sendRequest("Content-Type: multipart/mixed; boundary=\"" + boundary + "\"");
-            socket.sendRequest("");
+    private void sendMailHeader() {
+        System.out.println("<<<MAIL SEND>>>");
+        socket.sendRequest("From: "+userName+" <"+FromEmail+">");
+        socket.sendRequest("To: <"+ToEmail+">");
+        socket.sendRequest("Subject: "+Subject);
+        socket.sendRequest("MIME-Version: 1.0");
+        socket.sendRequest("Content-Type: multipart/mixed; boundary=\"" + boundary + "\"");
+        socket.sendCRLF();
+        socket.sendRequest("--" + boundary);
+    }
 
-            socket.sendRequest("--" + boundary);
-            socket.sendRequest("Content-Type: text/plain; charset=utf-8");
-            socket.sendRequest("Content-Transfer-Encoding: 7bit");
-            socket.sendRequest("");
-            for(int i=0;i<Contents.length;i++){
-                socket.sendRequest(Contents[i]);
-            }
+    private void sendBodyText() {
+        socket.sendRequest("Content-Type: text/plain; charset=utf-8");
+        socket.sendRequest("Content-Transfer-Encoding: 7bit");
+        socket.sendCRLF();
+        for(int i=0;i<Contents.length;i++){
+            socket.sendRequest(Contents[i]);
+        }
+        socket.sendRequest("--" + boundary);
+    }
 
-            socket.sendRequest("--" + boundary);
+    private void sendBodyFile() throws IOException {
+        if (!attachmentFilePath.isBlank()) {
             socket.sendRequest("Content-Type: application/octet-stream; name=\"" + new File(attachmentFilePath).getName() + "\"");
             socket.sendRequest("Content-Disposition: attachment; filename=\"" + new File(attachmentFilePath).getName() + "\"");
             socket.sendRequest("Content-Transfer-Encoding: base64");
-            socket.sendRequest("");
+            socket.sendCRLF();
 
             byte[] attachmentBytes = Files.readAllBytes(new File(attachmentFilePath).toPath());
             String attachmentBase64 = Base64.getEncoder().encodeToString(attachmentBytes);
             socket.sendRequest(attachmentBase64);
-            socket.sendRequest("");
-
-            socket.sendRequest("--" + boundary + "--");
-            socket.sendRequest(".");
-
-            System.out.println(socket.readResponse());
-            System.out.println("===========");
-
-            socket.sendRequest("QUIT");
-            System.out.println(socket.readResponse());
-            return true;
-        } catch (UnknownHostException ex) {
-
-            System.out.println("Server not found: " + ex.getMessage());
-            return false;
-        } catch (IOException ex) {
-
-            System.out.println("I/O error: " + ex.getMessage());
-            return false;
+            socket.sendCRLF();
         }
     }
-}
 
-//    public static void main(String[] args) {
-//        try  {
-//            SocketHelper socket = new NaverSocket();
-//            socket.FromSTARTTLS();
-//            System.out.println("socket.readResponse() = " + socket.readResponse());
-//
-//            socket.sendRequest("EHLO naver.com");
-//            List<String> responses = new ArrayList<>();
-//            for (int i = 0; i < 7; i ++) {
-//                String response = socket.readResponse();
-//                System.out.println("response = " + response);
-//                responses.add(response);
-//            }
-//
-//            boolean isTLS = false;
-////            for (String response : responses) {
-////                if (response.contains("250-STARTTLS")) {
-////                    System.out.println("here!");
-////                    socket.sendRequest("STARTTLS");
-////                    response = socket.readResponse();
-////                    System.out.println("response = " + response);
-////                    socket.upgradeToSSL();
-////
-////                    isTLS = true;
-////                    break;
-////                }
-////            }
-//
-//            if (!isTLS) {
-//                socket.close();
-//                socket.FromSSL();
-//                socket.upgradeToSSL();
-//                System.out.println("socket.readResponse() = " + socket.readResponse());
-//            }
-//
-//            System.out.println("AUTH LOGIN");
-//            socket.sendRequest("AUTH LOGIN");
-//            System.out.println(socket.readResponse());
-//            System.out.println("===========");
-//
-//            System.out.println("USER NAME");
-//            socket.sendRequest(Base64.getEncoder().encodeToString(userName.getBytes()));
-//            System.out.println(socket.readResponse());
-//            System.out.println("===========");
-//
-//            System.out.println("PASSWORD");
-//            socket.sendRequest(Base64.getEncoder().encodeToString(password.getBytes()));
-//            System.out.println(socket.readResponse());
-//            System.out.println("===========");
-//
-//            System.out.println("MAIL FROM:<"+ FromEmail +">");
-//            socket.sendRequest("MAIL FROM:<"+ FromEmail +">");
-//            System.out.println(socket.readResponse());
-//            System.out.println("===========");
-//
-//            System.out.println("RCPT TO:<"+ ToEmail +">");
-//            socket.sendRequest("RCPT TO:<"+ ToEmail +">");
-//            System.out.println(socket.readResponse());
-//            System.out.println("===========");
-//
-//            System.out.println("DATA");
-//            socket.sendRequest("DATA");
-//            System.out.println(socket.readResponse());
-//            System.out.println("===========");
-//
-//            socket.sendRequest("From: "+userName+" <"+FromEmail+">");
-//            socket.sendRequest("Subject: "+Subject);
-//            socket.sendRequest("Content-Type: text/plain; charset=utf-8");
-//            for(int i=0;i<Contents.length;i++){
-//                socket.sendRequest(Contents[i]);
-//            }
-//            socket.sendRequest(".");
-//            System.out.println(socket.readResponse());
-//            System.out.println("===========");
-//
-//            socket.sendRequest("QUIT");
-//            System.out.println(socket.readResponse());
-//            System.out.println("===========");
-//
-//        } catch (UnknownHostException ex) {
-//
-//            System.out.println("Server not found: " + ex.getMessage());
-//
-//        } catch (IOException ex) {
-//
-//            System.out.println("I/O error: " + ex.getMessage());
-//        }
-//    }
-//}
+    private void sendMailEnd() throws IOException {
+        socket.sendRequest("--" + boundary + "--");
+        socket.sendEnd();
+        log("SEND .", socket.readResponse());
+
+        socket.sendRequest("QUIT");
+        log("SEND QUIT", socket.readResponse());
+    }
+}

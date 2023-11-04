@@ -1,5 +1,6 @@
 package ui;
 
+import java.io.IOException;
 import smtp.SMTPClient;
 
 import javax.swing.*;
@@ -175,7 +176,7 @@ public class Mail_GUI extends JPanel {
                 int idx1=str_send.indexOf("@");
                 String send_domain=str_send.substring(idx1+1);
                 if (!send_domain.equals("naver.com")){
-                    if (!send_domain.equals("google.com")) {
+                    if (!send_domain.equals("gmail.com")) {
                         isSendEmail = false;
                     }
                 }
@@ -216,7 +217,11 @@ public class Mail_GUI extends JPanel {
                 {
                     System.out.println(ToEmailArray[i]);
                     SMTPClient smtp = new SMTPClient(str_send,str_password,ToEmailArray[i],str_title,str_filepath,TempContentArr);
-                    smtp.SMTPFunc();
+                    try {
+                        smtp.SMTPFunc();
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                    }
                 }
 
 

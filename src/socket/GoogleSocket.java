@@ -16,14 +16,14 @@ public class GoogleSocket implements SocketHelper{
 
     @Override
     public void FromSSL() throws IOException {
-        socket = new Socket(CodeContent.GOOGLE, CodeContent.PORT_SSL);
+        socket = new Socket(CodeContent.GOOGLE_SMTP, CodeContent.PORT_SSL);
         reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
     }
 
     @Override
     public void FromSTARTTLS() throws IOException {
-        socket = new Socket(CodeContent.GOOGLE, CodeContent.PORT_STARTTLS);
+        socket = new Socket(CodeContent.GOOGLE_SMTP, CodeContent.PORT_STARTTLS);
         reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
     }
@@ -36,6 +36,16 @@ public class GoogleSocket implements SocketHelper{
     @Override
     public void sendRequest(String request) {
         writer.println(request);
+    }
+
+    @Override
+    public void sendCRLF() {
+        writer.print("\r\n");
+    }
+
+    @Override
+    public void sendEnd() {
+        writer.print("\r\n.\r\n");
     }
 
     @Override
