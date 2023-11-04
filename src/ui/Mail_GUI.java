@@ -210,14 +210,10 @@ public class Mail_GUI extends JPanel {
 //                }
 //                통신, 메일보내기 성공했을 경우
 
-                String ToEmailArray[]=str_receive.split(",");
 
-                for(int i=0;i<ToEmailArray.length;i++)
-                {
-                    System.out.println(ToEmailArray[i]);
-                    SMTPClient smtp = new SMTPClient(str_send,str_password,ToEmailArray[i],str_title,str_filepath,TempContentArr);
+                    SMTPClient smtp = new SMTPClient(str_send,str_password,str_receive,str_title,str_filepath,TempContentArr);
                     smtp.SMTPFunc();
-                }
+
 
 
                     JOptionPane.showMessageDialog(null,"메일이 전송되었습니다.");

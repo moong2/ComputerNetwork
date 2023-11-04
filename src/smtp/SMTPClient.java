@@ -12,17 +12,16 @@ public class SMTPClient {
     String userName;
     String password ;
     String FromEmail;
-    String ToEmail ;
+    String[] ToEmail ;
     String Subject ;
 
     String attachmentFilePath ;
     String[] Contents;
 
-
     public SMTPClient( String _FromEmail, String _password, String _ToEmail, String _Subject,String _attachmentFilePath, String[] _Contents){
         FromEmail=_FromEmail;
         password=_password;
-        ToEmail=_ToEmail;
+        ToEmail=_ToEmail.split(",");
         Subject= _Subject;
         Contents=_Contents;
         attachmentFilePath = _attachmentFilePath;
@@ -33,6 +32,40 @@ public class SMTPClient {
         else if(_FromEmail.contains("gmail")){
             userName=_FromEmail;
         }
+    }
+    public void isSuccess (SocketHelper socket){
+        try{
+            String TempRes = socket.readResponse();
+            String StatusCode = TempRes.split("\\s")[0];
+
+            if(StatusCode.equals("334")) {
+                System.out.println(TempRes);
+                System.out.println(StatusCode);
+            }
+            else if(StatusCode.equals("354")) {
+                System.out.println(TempRes);
+                System.out.println(StatusCode);
+            }
+            else if(StatusCode.equals("250")) {
+                System.out.println(TempRes);
+                System.out.println(StatusCode);
+            }
+            else if(StatusCode.equals("221")) {
+                System.out.println(TempRes);
+                System.out.println(StatusCode);
+            }
+            else if(StatusCode.equals("235")) {
+                System.out.println(TempRes);
+                System.out.println(StatusCode);
+            }
+            else throw new Error("Response Error");
+    } catch (UnknownHostException ex) {
+
+        System.out.println("Server not found: " + ex.getMessage());
+    } catch (IOException ex) {
+
+        System.out.println("I/O error: " + ex.getMessage());
+    }
     }
 
     public boolean SMTPFunc() {
@@ -72,38 +105,39 @@ public class SMTPClient {
 
             System.out.println("AUTH LOGIN");
             socket.sendRequest("AUTH LOGIN");
-            System.out.println(socket.readResponse());
+            isSuccess(socket);
             System.out.println("===========");
 
             System.out.println("USER NAME");
             socket.sendRequest(Base64.getEncoder().encodeToString(userName.getBytes()));
-            System.out.println(socket.readResponse());
+            isSuccess(socket);
             System.out.println("===========");
 
             System.out.println("PASSWORD");
             socket.sendRequest(Base64.getEncoder().encodeToString(password.getBytes()));
-            System.out.println(socket.readResponse());
+            isSuccess(socket);
             System.out.println("===========");
 
             System.out.println("MAIL FROM:<"+ FromEmail +">");
             socket.sendRequest("MAIL FROM:<"+ FromEmail +">");
-            System.out.println(socket.readResponse());
+            isSuccess(socket);
             System.out.println("===========");
 
-            System.out.println("RCPT TO:<"+ ToEmail +">");
-            socket.sendRequest("RCPT TO:<"+ ToEmail +">");
-            System.out.println(socket.readResponse());
-            System.out.println("===========");
+            for(int i=0;i<ToEmail.length;i++) {
+                System.out.println("RCPT TO:<" + ToEmail[i] + ">");
+                socket.sendRequest("RCPT TO:<" + ToEmail[i] + ">");
+                isSuccess(socket);
+                System.out.println("===========");
+            }
 
             System.out.println("DATA");
             socket.sendRequest("DATA");
-            System.out.println(socket.readResponse());
+            isSuccess(socket);
             System.out.println("===========");
 
             String boundary = "abcdxyz";
 
             socket.sendRequest("From: "+userName+" <"+FromEmail+">");
-            socket.sendRequest("To: <"+ToEmail+">");
             socket.sendRequest("Subject: "+Subject);
             socket.sendRequest("MIME-Version: 1.0");
             socket.sendRequest("Content-Type: multipart/mixed; boundary=\"" + boundary + "\"");
@@ -131,11 +165,11 @@ public class SMTPClient {
             socket.sendRequest("--" + boundary + "--");
             socket.sendRequest(".");
 
-            System.out.println(socket.readResponse());
+            isSuccess(socket);
             System.out.println("===========");
 
             socket.sendRequest("QUIT");
-            System.out.println(socket.readResponse());
+            isSuccess(socket);
             return true;
         } catch (UnknownHostException ex) {
 
@@ -148,6 +182,8 @@ public class SMTPClient {
         }
     }
 }
+
+
 
 //    public static void main(String[] args) {
 //        try  {
