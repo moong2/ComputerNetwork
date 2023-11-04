@@ -55,7 +55,7 @@ public class SMTPClient {
         socket.FromSTARTTLS();
         log("STARTTLS", socket.readResponse());
 
-        List<String> responses = getEHLO(socket);
+        List<String> responses = getEHLO();
 
         boolean isTLS = checkSTARTTLS(responses);
 
@@ -73,10 +73,16 @@ public class SMTPClient {
         sendMailEnd();
     }
 
-    private List<String> getEHLO(SocketHelper socket) throws IOException {
+    private List<String> getEHLO() throws IOException {
         socket.sendRequest("EHLO gmail.com");
         List<String> responses = new ArrayList<>();
-        for (int i = 0; i < 7; i ++) {
+
+        int ehloSize = 0;
+        if (socket instanceof NaverSocket) ehloSize = 7;
+        else if (socket instanceof GoogleSocket) ehloSize = 8;
+        else throw new IllegalArgumentException("지원하지 않는 이메일 형식입니다. gmail, naver만 이용해주세요.");
+
+        for (int i = 0; i < ehloSize; i ++) {
             String response = socket.readResponse();
             responses.add(response);
         }
@@ -103,6 +109,10 @@ public class SMTPClient {
         socket.FromSSL();
         socket.upgradeToSSL();
         log("SSL", socket.readResponse());
+
+        if (socket instanceof GoogleSocket) {
+            getEHLO();
+        }
     }
 
     private void getAuth() throws IOException {
