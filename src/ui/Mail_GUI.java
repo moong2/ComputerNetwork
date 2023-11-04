@@ -9,6 +9,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.ScrollPaneConstants;
 import static javax.swing.JOptionPane.showMessageDialog;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 public class Mail_GUI extends JPanel {
     //스킨
@@ -32,9 +34,9 @@ public class Mail_GUI extends JPanel {
         la_send=new JLabel("보내는 사람",JLabel.LEFT);
         la_send.setBounds(20, 3, 60, 30);
         tf_send=new JTextField();
-        tf_send.setBounds(100, 3, 430, 30);
+        tf_send.setBounds(100, 6, 410, 21);
         tf_send.setBorder(BorderFactory.createEmptyBorder());
-        tf_send.setBackground(backgroundColor1);
+//        tf_send.setBackground(backgroundColor1);
         add(la_send);
         add(tf_send);
 
@@ -47,9 +49,9 @@ public class Mail_GUI extends JPanel {
         la_password=new JLabel("비밀번호",JLabel.LEFT);
         la_password.setBounds(20, 38, 50, 30);
         passwordField =new JPasswordField();
-        passwordField.setBounds(100,38,410,30);
+        passwordField.setBounds(100,41,410,21);
         passwordField.setBorder(BorderFactory.createEmptyBorder());
-        passwordField.setBackground(backgroundColor1);
+//        passwordField.setBackground(backgroundColor1);
         add(la_password);
         add(passwordField);
 
@@ -64,9 +66,9 @@ public class Mail_GUI extends JPanel {
         la_receive=new JLabel("받는 사람",JLabel.LEFT);
         la_receive.setBounds(20, 73, 50, 30);
         tf_receive=new JTextField();
-        tf_receive.setBounds(90, 73, 430, 30);
+        tf_receive.setBounds(100, 76, 410, 21);
         tf_receive.setBorder(BorderFactory.createEmptyBorder());
-        tf_receive.setBackground(backgroundColor1);
+//        tf_receive.setBackground(backgroundColor1);
         add(la_receive);
         add(tf_receive);
 
@@ -81,9 +83,9 @@ public class Mail_GUI extends JPanel {
         la_title=new JLabel("제목",JLabel.LEFT);
         la_title.setBounds(20, 108, 50, 30);
         tf_title=new JTextField();
-        tf_title.setBounds(90, 108, 430, 30);
+        tf_title.setBounds(100, 111, 410, 21);
         tf_title.setBorder(BorderFactory.createEmptyBorder());
-        tf_title.setBackground(backgroundColor1);
+//        tf_title.setBackground(backgroundColor1);
         add(la_title);
         add(tf_title);
 
@@ -99,7 +101,7 @@ public class Mail_GUI extends JPanel {
         la_path=new JLabel();
         la_path.setBounds(90, 144, 350, 30);
         la_path.setBorder(BorderFactory.createEmptyBorder());
-        la_path.setBackground(backgroundColor1);
+//        la_path.setBackground(backgroundColor1);
         add(la_file);
         add(la_path);
 
@@ -153,6 +155,59 @@ public class Mail_GUI extends JPanel {
                 str_filepath=la_path.getText();
                 str_content=content.getText();
 
+//                보내는 사람 메일 체크
+                boolean isSendEmail = false;
+                if(str_send.isEmpty()){
+                    isSendEmail=false;
+                }
+
+                String regex = "^[_a-z0-9-]+(.[_a-z0-9-]+)*@(?:\\w+\\.)+\\w+$";
+                Pattern p = Pattern.compile(regex);
+                Matcher m1 = p.matcher(str_send);
+                if(m1.matches()) {
+                    isSendEmail = true;
+                }
+                int idx1=str_send.indexOf("@");
+                String send_domain=str_send.substring(idx1+1);
+                if (!send_domain.equals("naver.com")){
+                    if (!send_domain.equals("google.com")) {
+                        isSendEmail = false;
+                    }
+                }
+
+//                받는 사람 메일 체크
+                boolean isReceiveEmail = false;
+
+                if(str_receive.isEmpty()){
+                    isReceiveEmail=false;
+                }
+                Matcher m2 = p.matcher(str_receive);
+                if(m2.matches()) {
+                    isReceiveEmail = true;
+                }
+                int idx2=str_receive.indexOf("@");
+                String receive_domain=str_receive.substring(idx2+1);
+                if (!receive_domain.equals("naver.com")){
+                    if (!receive_domain.equals("gmail.com")) {
+                        isReceiveEmail = false;
+                    }
+                }
+
+                if (!isSendEmail){
+                    JOptionPane.showMessageDialog(null,"보내는 사람에 올바른 이메일 형식을 적어주세요.\n (네이버, 구글 계정 도메인만 지원합니다.)");
+                }
+                else if (!isReceiveEmail){
+                    JOptionPane.showMessageDialog(null,"받는 사람에 올바른 이메일 형식을 적어주세요.\n (네이버, 구글 계정 도메인만 지원합니다.)");
+                }
+//                이메일 형식은 맞지만 통신에 실패했을 경우
+//                else if(){
+//                    JOptionPane.showMessageDialog(null,"통신 실패!");
+//                }
+//                통신, 메일보내기 성공했을 경우
+                else{
+                    JOptionPane.showMessageDialog(null,"메일이 전송되었습니다.");
+                }
+
             }
         });
 
@@ -162,9 +217,6 @@ public class Mail_GUI extends JPanel {
                 System.exit(0);
             }
         });
-
-
-
 
     }
 }
