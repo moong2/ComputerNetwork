@@ -1,5 +1,7 @@
 package ui;
 
+import smtp.SMTPClient;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -155,6 +157,16 @@ public class Mail_GUI extends JPanel {
                 str_filepath=la_path.getText();
                 str_content=content.getText();
 
+                System.out.println(str_send);
+                System.out.println(str_password);
+                System.out.println(str_receive);
+                System.out.println(str_title);
+                System.out.println(str_filepath);
+                System.out.println(str_content);
+
+                String TempContentArr[]= str_content.split("\n");
+
+
 //                보내는 사람 메일 체크
                 boolean isSendEmail = false;
                 if(str_send.isEmpty()){
@@ -176,36 +188,43 @@ public class Mail_GUI extends JPanel {
                 }
 
 //                받는 사람 메일 체크
-                boolean isReceiveEmail = false;
-
-                if(str_receive.isEmpty()){
-                    isReceiveEmail=false;
-                }
-                Matcher m2 = p.matcher(str_receive);
-                if(m2.matches()) {
-                    isReceiveEmail = true;
-                }
-                int idx2=str_receive.indexOf("@");
-                String receive_domain=str_receive.substring(idx2+1);
-                if (!receive_domain.equals("naver.com")){
-                    if (!receive_domain.equals("gmail.com")) {
-                        isReceiveEmail = false;
-                    }
-                }
+//                boolean isReceiveEmail = false;
+//
+//                if(str_receive.isEmpty()){
+//                    isReceiveEmail=false;
+//                }
+//                Matcher m2 = p.matcher(str_receive);
+//                if(m2.matches()) {
+//                    isReceiveEmail = true;
+//                }
+//                int idx2=str_receive.indexOf("@");
+//                String receive_domain=str_receive.substring(idx2+1);
+//                if (!receive_domain.equals("naver.com")){
+//                    if (!receive_domain.equals("gmail.com")) {
+//                        isReceiveEmail = false;
+//                    }
+//                }
 
                 if (!isSendEmail){
                     JOptionPane.showMessageDialog(null,"보내는 사람에 올바른 이메일 형식을 적어주세요.\n (네이버, 구글 계정 도메인만 지원합니다.)");
                 }
-                else if (!isReceiveEmail){
-                    JOptionPane.showMessageDialog(null,"받는 사람에 올바른 이메일 형식을 적어주세요.\n (네이버, 구글 계정 도메인만 지원합니다.)");
-                }
+//                else if (!isReceiveEmail){
+//                    JOptionPane.showMessageDialog(null,"받는 사람에 올바른 이메일 형식을 적어주세요.\n (네이버, 구글 계정 도메인만 지원합니다.)");
+//                }
 //                이메일 형식은 맞지만 통신에 실패했을 경우
 //                else if(){
 //                    JOptionPane.showMessageDialog(null,"통신 실패!");
 //                }
 //                통신, 메일보내기 성공했을 경우
-                else{
+
+
+                SMTPClient smtp = new SMTPClient(str_send,str_password,str_receive,str_title,str_filepath,TempContentArr);
+
+                if(smtp.SMTPFunc()){
                     JOptionPane.showMessageDialog(null,"메일이 전송되었습니다.");
+                }
+                else{
+                    JOptionPane.showMessageDialog(null,"메일이 전송이 실패하였습니다.");
                 }
 
             }
