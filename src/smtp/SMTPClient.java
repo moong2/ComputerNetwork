@@ -54,7 +54,6 @@ public class SMTPClient {
     public void SMTPFunc() throws IOException {
         socket.FromSTARTTLS();
         log("STARTTLS", socket.readResponse());
-//        log("SSL", socket.readResponse());
 
         List<String> responses = getEHLO(socket);
 

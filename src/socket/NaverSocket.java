@@ -39,16 +39,6 @@ public class NaverSocket implements SocketHelper{
     }
 
     @Override
-    public void sendCRLF() {
-        writer.print("\r\n");
-    }
-
-    @Override
-    public void sendEnd() {
-        writer.print("\r\n.\r\n");
-    }
-
-    @Override
     public void upgradeToSSL() throws IOException {
         SSLSocketFactory sslSocketFactory = (SSLSocketFactory) SSLSocketFactory.getDefault();
         socket = sslSocketFactory.createSocket(socket, socket.getInetAddress().getHostAddress(), socket.getPort(), true);

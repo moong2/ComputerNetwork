@@ -7,8 +7,6 @@ public interface SocketHelper {
     void FromSTARTTLS() throws IOException;
     String readResponse() throws IOException;
     void sendRequest(String request);
-    void sendCRLF();
-    void sendEnd();
     void upgradeToSSL() throws IOException;
     void close() throws IOException;
 }
