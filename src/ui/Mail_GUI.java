@@ -175,7 +175,7 @@ public class Mail_GUI extends JPanel {
                 int idx1=str_send.indexOf("@");
                 String send_domain=str_send.substring(idx1+1);
                 if (!send_domain.equals("naver.com")){
-                    if (!send_domain.equals("google.com")) {
+                    if (!send_domain.equals("gmail.com")) {
                         isSendEmail = false;
                     }
                 }
@@ -216,11 +216,17 @@ public class Mail_GUI extends JPanel {
                 {
                     System.out.println(ToEmailArray[i]);
                     SMTPClient smtp = new SMTPClient(str_send,str_password,ToEmailArray[i],str_title,str_filepath,TempContentArr);
-                    smtp.SMTPFunc();
+                    boolean isSent=smtp.SMTPFunc();
+                    System.out.println(isSent);
+
+                    if (isSent){
+                        JOptionPane.showMessageDialog(null,ToEmailArray[i]+"로의 이메일 전송이 완료되었습니다.");
+                    }
+                    else{
+                        JOptionPane.showMessageDialog(null,ToEmailArray[i]+"로의 이메일 전송이 실패하였습니다.");
+                    }
                 }
 
-
-                    JOptionPane.showMessageDialog(null,"메일이 전송되었습니다.");
 
 
 
