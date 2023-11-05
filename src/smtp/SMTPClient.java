@@ -52,8 +52,7 @@ public class SMTPClient {
     }
 
     public void SMTPFunc() throws IOException {
-        socket.FromSTARTTLS();
-        log("STARTTLS", socket.readResponse());
+        makeSTARTTLS();
 
         List<String> responses = getEHLO();
 
@@ -71,6 +70,11 @@ public class SMTPClient {
         sendBodyText();
         sendBodyFile();
         sendMailEnd();
+    }
+
+    private void makeSTARTTLS() throws IOException {
+        socket.FromSTARTTLS();
+        log("STARTTLS", socket.readResponse());
     }
 
     private List<String> getEHLO() throws IOException {
