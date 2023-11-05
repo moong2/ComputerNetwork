@@ -12,6 +12,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.ScrollPaneConstants;
 import static javax.swing.JOptionPane.showMessageDialog;
+
+import java.util.List;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
@@ -39,7 +41,6 @@ public class Mail_GUI extends JPanel {
         tf_send=new JTextField();
         tf_send.setBounds(100, 6, 410, 21);
         tf_send.setBorder(BorderFactory.createEmptyBorder());
-//        tf_send.setBackground(backgroundColor1);
         add(la_send);
         add(tf_send);
 
@@ -54,7 +55,6 @@ public class Mail_GUI extends JPanel {
         passwordField =new JPasswordField();
         passwordField.setBounds(100,41,410,21);
         passwordField.setBorder(BorderFactory.createEmptyBorder());
-//        passwordField.setBackground(backgroundColor1);
         add(la_password);
         add(passwordField);
 
@@ -71,7 +71,6 @@ public class Mail_GUI extends JPanel {
         tf_receive=new JTextField();
         tf_receive.setBounds(100, 76, 410, 21);
         tf_receive.setBorder(BorderFactory.createEmptyBorder());
-//        tf_receive.setBackground(backgroundColor1);
         add(la_receive);
         add(tf_receive);
 
@@ -88,7 +87,6 @@ public class Mail_GUI extends JPanel {
         tf_title=new JTextField();
         tf_title.setBounds(100, 111, 410, 21);
         tf_title.setBorder(BorderFactory.createEmptyBorder());
-//        tf_title.setBackground(backgroundColor1);
         add(la_title);
         add(tf_title);
 
@@ -104,7 +102,6 @@ public class Mail_GUI extends JPanel {
         la_path=new JLabel();
         la_path.setBounds(90, 144, 330, 30);
         la_path.setBorder(BorderFactory.createEmptyBorder());
-//        la_path.setBackground(backgroundColor1);
         add(la_file);
         add(la_path);
 
@@ -172,8 +169,6 @@ public class Mail_GUI extends JPanel {
 
                 String TempContentArr[]= str_content.split("\n");
 
-
-//                보내는 사람 메일 체크
                 boolean isSendEmail = false;
                 if(str_send.isEmpty()){
                     isSendEmail=false;
@@ -193,54 +188,21 @@ public class Mail_GUI extends JPanel {
                     }
                 }
 
-//                받는 사람 메일 체크
-//                boolean isReceiveEmail = false;
-//
-//                if(str_receive.isEmpty()){
-//                    isReceiveEmail=false;
-//                }
-//                Matcher m2 = p.matcher(str_receive);
-//                if(m2.matches()) {
-//                    isReceiveEmail = true;
-//                }
-//                int idx2=str_receive.indexOf("@");
-//                String receive_domain=str_receive.substring(idx2+1);
-//                if (!receive_domain.equals("naver.com")){
-//                    if (!receive_domain.equals("gmail.com")) {
-//                        isReceiveEmail = false;
-//                    }
-//                }
-
                 if (!isSendEmail){
-                    JOptionPane.showMessageDialog(null,"보내는 사람에 올바른 이메일 형식을 적어주세요.\n (네이버, 구글 계정 도메인만 지원합니다.)");
+                    JOptionPane.showMessageDialog(null,"올바른 이메일 형식을 적어주세요.\n (네이버, 구글 계정 도메인만 지원합니다.)");
                 }
-//                else if (!isReceiveEmail){
-//                    JOptionPane.showMessageDialog(null,"받는 사람에 올바른 이메일 형식을 적어주세요.\n (네이버, 구글 계정 도메인만 지원합니다.)");
-//                }
-//                이메일 형식은 맞지만 통신에 실패했을 경우
-//                else if(){
-//                    JOptionPane.showMessageDialog(null,"통신 실패!");
-//                }
-//                통신, 메일보내기 성공했을 경우
+                else {
+                    List<String> toEmails = List.of(str_receive.split(","));
 
-                String ToEmailArray[]=str_receive.split(",");
-
-                for(int i=0;i<ToEmailArray.length;i++)
-                {
-                    System.out.println(ToEmailArray[i]);
-                    SMTPClient smtp = new SMTPClient(str_send,str_password,ToEmailArray[i],str_title,str_filepath,TempContentArr);
+                    SMTPClient smtp = new SMTPClient(str_send, str_password, toEmails, str_title, str_filepath, TempContentArr);
                     try {
                         smtp.SMTPFunc();
-                    } catch (IOException ex) {
-                        ex.printStackTrace();
+                        JOptionPane.showMessageDialog(null, "이메일 전송이 완료되었습니다.");
+                    } catch (Exception ex) {
+                        System.out.println(ex.getMessage());
+                        JOptionPane.showMessageDialog(null, ex.getMessage());
                     }
                 }
-
-
-                    JOptionPane.showMessageDialog(null,"메일이 전송되었습니다.");
-
-
-
             }
         });
 
