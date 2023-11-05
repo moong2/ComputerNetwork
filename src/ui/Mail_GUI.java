@@ -12,6 +12,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.ScrollPaneConstants;
 import static javax.swing.JOptionPane.showMessageDialog;
+
+import java.util.List;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
@@ -189,19 +191,16 @@ public class Mail_GUI extends JPanel {
                 if (!isSendEmail){
                     JOptionPane.showMessageDialog(null,"올바른 이메일 형식을 적어주세요.\n (네이버, 구글 계정 도메인만 지원합니다.)");
                 }
+                else {
+                    List<String> toEmails = List.of(str_receive.split(","));
 
-                String ToEmailArray[]=str_receive.split(",");
-
-                for(int i=0;i<ToEmailArray.length;i++)
-                {
-                    System.out.println(ToEmailArray[i]);
-                    SMTPClient smtp = new SMTPClient(str_send,str_password,ToEmailArray[i],str_title,str_filepath,TempContentArr);
+                    SMTPClient smtp = new SMTPClient(str_send, str_password, toEmails, str_title, str_filepath, TempContentArr);
                     try {
                         smtp.SMTPFunc();
-                        JOptionPane.showMessageDialog(null,ToEmailArray[i]+"로의 이메일 전송이 완료되었습니다.");
+                        JOptionPane.showMessageDialog(null, "이메일 전송이 완료되었습니다.");
                     } catch (Exception ex) {
                         System.out.println(ex.getMessage());
-                        JOptionPane.showMessageDialog(null,ToEmailArray[i]+"로의 이메일 전송이 실패하였습니다.\n" + ex.getMessage());
+                        JOptionPane.showMessageDialog(null, ex.getMessage());
                     }
                 }
             }

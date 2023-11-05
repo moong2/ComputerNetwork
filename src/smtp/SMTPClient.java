@@ -21,16 +21,16 @@ public class SMTPClient {
     String userName;
     String password ;
     String FromEmail;
-    String ToEmail ;
+    List<String> ToEmails ;
     String Subject ;
 
     String attachmentFilePath ;
     String[] Contents;
 
-    public SMTPClient( String _FromEmail, String _password, String _ToEmail, String _Subject, String _attachmentFilePath, String[] _Contents){
+    public SMTPClient( String _FromEmail, String _password, List<String> _ToEmails, String _Subject, String _attachmentFilePath, String[] _Contents){
         FromEmail=_FromEmail;
         password=_password;
-        ToEmail=_ToEmail;
+        ToEmails=_ToEmails;
         Subject= _Subject;
         Contents=_Contents;
         attachmentFilePath = _attachmentFilePath;
@@ -90,7 +90,7 @@ public class SMTPClient {
             String response = socket.readResponse();
             responses.add(response);
         }
-        log("EHLO", responses.toArray(new String[responses.size()]));
+        log("EHLO", String.join(",", ToEmails), responses.toArray(new String[responses.size()]));
 
         return responses;
     }
@@ -99,7 +99,7 @@ public class SMTPClient {
         for (String response : responses) {
             if (response.contains("250-STARTTLS")) {
                 socket.sendRequest("STARTTLS");
-                log("STARTTLS", socket.readResponse());
+                log("STARTTLS", String.join(",", ToEmails), socket.readResponse());
                 socket.upgradeToSSL();
 
                 return true;
@@ -112,7 +112,7 @@ public class SMTPClient {
         socket.close();
         socket.FromSSL();
         socket.upgradeToSSL();
-        log("SSL", socket.readResponse());
+        log("SSL", String.join(",", ToEmails), socket.readResponse());
 
         if (socket instanceof GoogleSocket) {
             getEHLO();
@@ -121,34 +121,36 @@ public class SMTPClient {
 
     private void getAuth() throws IOException {
         socket.sendRequest("AUTH LOGIN");
-        log("AUTH LOGIN", socket.readResponse());
+        log("AUTH LOGIN", String.join(",", ToEmails), socket.readResponse());
 
         socket.sendRequest(Base64.getEncoder().encodeToString(userName.getBytes()));
-        log("USER NAME", socket.readResponse());
+        log("USER NAME", String.join(",", ToEmails), socket.readResponse());
 
         socket.sendRequest(Base64.getEncoder().encodeToString(password.getBytes()));
-        log("PASSWORD", socket.readResponse());
+        log("PASSWORD", String.join(",", ToEmails), socket.readResponse());
     }
 
     private void sendMail() throws IOException {
         socket.sendRequest("MAIL FROM:<"+ FromEmail +">");
-        log("MAIL FROM", socket.readResponse());
+        log("MAIL FROM", String.join(",", ToEmails), socket.readResponse());
     }
 
     private void sendTo() throws IOException {
-        socket.sendRequest("RCPT TO:<"+ ToEmail +">");
-        log("RCPT TO", socket.readResponse());
+        for (String toEmail : ToEmails) {
+            socket.sendRequest("RCPT TO:<"+ toEmail +">");
+            log("RCPT TO", toEmail, socket.readResponse());
+        }
     }
 
     private void sendData() throws IOException {
         socket.sendRequest("DATA");
-        log("DATA", socket.readResponse());
+        log("DATA", String.join(",", ToEmails), socket.readResponse());
     }
 
     private void sendMailHeader() {
         System.out.println("<<<MAIL SEND>>>");
         socket.sendRequest("From: "+userName+" <"+FromEmail+">");
-        socket.sendRequest("To: <"+ToEmail+">");
+        socket.sendRequest("To: <"+String.join(",", ToEmails)+">");
         socket.sendRequest("Subject: "+Subject);
         socket.sendRequest("MIME-Version: 1.0");
         socket.sendRequest("Content-Type: multipart/mixed; boundary=\"" + boundary + "\"");
@@ -183,9 +185,9 @@ public class SMTPClient {
     private void sendMailEnd() throws IOException {
         socket.sendRequest("--" + boundary + "--");
         socket.sendRequest(".");
-        log("SEND .", socket.readResponse());
+        log("SEND .", String.join(",", ToEmails), socket.readResponse());
 
         socket.sendRequest("QUIT");
-        log("SEND QUIT", socket.readResponse());
+        log("SEND QUIT", String.join(",", ToEmails), socket.readResponse());
     }
 }
