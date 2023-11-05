@@ -187,7 +187,7 @@ public class Mail_GUI extends JPanel {
                 }
 
                 if (!isSendEmail){
-                    JOptionPane.showMessageDialog(null,"보내는 사람에 올바른 이메일 형식을 적어주세요.\n (네이버, 구글 계정 도메인만 지원합니다.)");
+                    JOptionPane.showMessageDialog(null,"올바른 이메일 형식을 적어주세요.\n (네이버, 구글 계정 도메인만 지원합니다.)");
                 }
 
                 String ToEmailArray[]=str_receive.split(",");
@@ -201,7 +201,7 @@ public class Mail_GUI extends JPanel {
                         JOptionPane.showMessageDialog(null,ToEmailArray[i]+"로의 이메일 전송이 완료되었습니다.");
                     } catch (Exception ex) {
                         System.out.println(ex.getMessage());
-                        JOptionPane.showMessageDialog(null,ToEmailArray[i]+"로의 이메일 전송이 실패하였습니다.");
+                        JOptionPane.showMessageDialog(null,ToEmailArray[i]+"로의 이메일 전송이 실패하였습니다.\n" + ex.getMessage());
                     }
                 }
             }

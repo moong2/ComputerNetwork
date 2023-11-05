@@ -84,7 +84,7 @@ public class SMTPClient {
         int ehloSize = 0;
         if (socket instanceof NaverSocket) ehloSize = 7;
         else if (socket instanceof GoogleSocket) ehloSize = 8;
-        else throw new IllegalArgumentException("지원하지 않는 이메일 형식입니다. gmail, naver만 이용해주세요.");
+        else throw new IllegalArgumentException("올바른 이메일 형식을 적어주세요.\n (네이버, 구글 계정 도메인만 지원합니다.)");
 
         for (int i = 0; i < ehloSize; i ++) {
             String response = socket.readResponse();
