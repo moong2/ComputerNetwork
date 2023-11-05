@@ -16,16 +16,16 @@ public class NaverSocket implements SocketHelper{
 
     @Override
     public void FromSSL() throws IOException {
-        socket = new Socket(CodeContent.NAVER, CodeContent.PORT_SSL);
+        socket = new Socket(CodeContent.NAVER_SMTP, CodeContent.PORT_SSL);
         reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
+        writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()), true);
     }
 
     @Override
     public void FromSTARTTLS() throws IOException {
-        socket = new Socket(CodeContent.NAVER, CodeContent.PORT_STARTTLS);
+        socket = new Socket(CodeContent.NAVER_SMTP, CodeContent.PORT_STARTTLS);
         reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
+        writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()), true);
     }
 
     @Override
@@ -36,7 +36,6 @@ public class NaverSocket implements SocketHelper{
     @Override
     public void sendRequest(String request) {
         writer.println(request);
-        writer.flush();
     }
 
     @Override

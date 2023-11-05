@@ -1,5 +1,6 @@
 package ui;
 
+import java.io.IOException;
 import smtp.SMTPClient;
 
 import javax.swing.*;
@@ -101,11 +102,23 @@ public class Mail_GUI extends JPanel {
         la_file=new JLabel("파일 첨부",JLabel.LEFT);
         la_file.setBounds(20, 144, 50, 30);
         la_path=new JLabel();
-        la_path.setBounds(90, 144, 350, 30);
+        la_path.setBounds(90, 144, 330, 30);
         la_path.setBorder(BorderFactory.createEmptyBorder());
 //        la_path.setBackground(backgroundColor1);
         add(la_file);
         add(la_path);
+
+        JButton deleteFileButton= new JButton("X");
+        deleteFileButton.setBorder(BorderFactory.createEmptyBorder(0 , 0, 0 , 0));
+        deleteFileButton.setBounds(420,150,20,20);
+        deleteFileButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                la_path.setText("");
+            }
+        });
+        add(deleteFileButton);
+
 
         JButton browseButton= new JButton("찾아보기");
         browseButton.setBounds(450,144,80,35);
@@ -175,7 +188,7 @@ public class Mail_GUI extends JPanel {
                 int idx1=str_send.indexOf("@");
                 String send_domain=str_send.substring(idx1+1);
                 if (!send_domain.equals("naver.com")){
-                    if (!send_domain.equals("google.com")) {
+                    if (!send_domain.equals("gmail.com")) {
                         isSendEmail = false;
                     }
                 }
@@ -216,7 +229,11 @@ public class Mail_GUI extends JPanel {
                 {
                     System.out.println(ToEmailArray[i]);
                     SMTPClient smtp = new SMTPClient(str_send,str_password,ToEmailArray[i],str_title,str_filepath,TempContentArr);
-                    smtp.SMTPFunc();
+                    try {
+                        smtp.SMTPFunc();
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                    }
                 }
 
 
