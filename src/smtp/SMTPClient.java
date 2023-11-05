@@ -149,10 +149,10 @@ public class SMTPClient {
         socket.sendRequest("MIME-Version: 1.0");
         socket.sendRequest("Content-Type: multipart/mixed; boundary=\"" + boundary + "\"");
         socket.sendRequest("");
-        socket.sendRequest("--" + boundary);
     }
 
     private void sendBodyText() {
+        socket.sendRequest("--" + boundary);
         socket.sendRequest("Content-Type: text/plain; charset=utf-8");
         socket.sendRequest("Content-Transfer-Encoding: 7bit");
         socket.sendRequest("");
