@@ -74,7 +74,7 @@ public class SMTPClient {
     }
 
     private List<String> getEHLO() throws IOException {
-        socket.sendRequest("EHLO gmail.com");
+        socket.sendRequest("EHLO localhost");
         List<String> responses = new ArrayList<>();
 
         int ehloSize = 0;
